@@ -56,8 +56,11 @@ class BlockChain {
     minePendingTransactions() {
         $block = [Block]::new($(Get-Date), $this.pendingTransactions)
         $block.mineBlock($this.difficulty)
+
         if ($?) { Write-Host "Block Successfully Mined!" }
         $this.chain.add($block)
+
+        $this.pendingTransactions.Add([Transaction]::new($null, "FAKEminningRewardAddress", $this.minningReward))
     }
     [Block] getLatestBlock() {
         return $this.chain[$this.chain.length - 1]
