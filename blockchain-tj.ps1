@@ -43,7 +43,7 @@ class Block {
 }
 
 class BlockChain {
-    $chain = @()
+    [Block[]]$chain = @()
     [Int32]$difficulty = 2
     [Transaction[]]$pendingTransactions = @()
     [Int32]$minningReward = 100
@@ -68,9 +68,9 @@ class BlockChain {
         $block.mineBlock($this.difficulty)
 
         if ($?) { Write-Host "Block Successfully Mined!" }
-        $($this.chain).add($block)
+        $this.chain += $block
 
-        $this.pendingTransactions.Add([Transaction]::new($null, $minningRewardAddress, $this.minningReward))
+        $this.pendingTransactions += [Transaction]::new($null, $minningRewardAddress, $this.minningReward)
     }
 
     createTransaction([Transaction]$transaction){
@@ -85,7 +85,7 @@ class BlockChain {
     [Int32] getBallanceOfAddress($address){
         $ballance = 0
 
-        foreach ($block in $this.chain) {
+        foreach ($block in $($this.chain)) {
             foreach ($transaction in $block.transaction) {
                 if ($transaction.fromAddress -eq $address){ $ballance -= $transaction.ammount }
                 if ($transaction.toAddress -eq $address) { $ballance += $transaction.ammount }
@@ -114,6 +114,9 @@ $blockChain = [BlockChain]::new($([Transaction]::new("","",0)))
 $blockChain.createTransaction($([Transaction]::new("address1","address2",100)))
 $blockChain.createTransaction($([Transaction]::new("address2","address1",50)))
 
+$blockChain.minePendingTransactions("address3")
+
+$blockChain.getBallanceOfAddress("address3")
 $blockChain.minePendingTransactions("address3")
 
 $blockChain.getBallanceOfAddress("address3")
