@@ -35,7 +35,7 @@ class Block {
         return Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$stream)) -Algorithm SHA256
     }
     mineBlock([Int32]$difficulty) {
-        while ($this.hash.Substring(0, $difficulty) -ne (([char[]]$difficulty).Length + 1) ){
+        while ($($this.hash.Substring(0, $difficulty)).length -ne (([char[]]$difficulty).Length + 1) ){
             $this.nonce++
             $this.hash = $this.calculateHash()
         } 
@@ -60,17 +60,20 @@ class BlockChain {
         $this.chain.add($newBlock)
     }#>
     minePendingTransactions($minningRewardAddress) {
-        $block = [Block]::new($(Get-Date), $this.pendingTransactions, $this.chain[$this.chain.lenth -1].hash)
+        $block = $null
+
+        foreach ( $transactions in $this.pendingTransactions ){ 
+            $block = [Block]::new($(Get-Date), $transactions, $this.chain[$this.chain.lenth -1].hash)
+        }
         $block.mineBlock($this.difficulty)
 
         if ($?) { Write-Host "Block Successfully Mined!" }
-        $this.chain.add($block)
+        $($this.chain).add($block)
 
         $this.pendingTransactions.Add([Transaction]::new($null, $minningRewardAddress, $this.minningReward))
     }
 
     createTransaction([Transaction]$transaction){
-        Write-Host "($this.pendingTransactions)"
         if ($this.pendingTransactions.length -eq 0) { $this.pendingTransactions = $transaction }
         elseif($this.pendingTransactions.length -gt 0) { $this.pendingTransactions += $transaction }
     }
@@ -107,6 +110,10 @@ class BlockChain {
     }
 }
 
-$blockChain = [BlockChain]::new($([Transaction]::new("address1","address2",100)))
-$blockChain.createTransaction([Transaction]::new("address1","address2",100))
+$blockChain = [BlockChain]::new($([Transaction]::new("","",0)))
+$blockChain.createTransaction($([Transaction]::new("address1","address2",100)))
 $blockChain.createTransaction($([Transaction]::new("address2","address1",50)))
+
+$blockChain.minePendingTransactions("address3")
+
+$blockChain.getBallanceOfAddress("address3")
