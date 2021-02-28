@@ -5,8 +5,12 @@ class Transaction {
 
     Transaction ([String]$fromAddress, [String]$toAddress, [Int32]$ammount) {
         $this.fromAddress = $fromAddress
-        $this.toAddress = $fromAddress
+        $this.toAddress = $toAddress
         $this.ammount = $ammount
+    }
+
+    [String] ToString() {
+        return "$($this.fromAddress) + $($this.toAddress) + $($this.ammount)"
     }
 }
 
@@ -19,12 +23,14 @@ class Block {
 
     Block([DateTime]$timestamp, [Transaction]$transaction, [String]$hash_prev){
         $this.nonce = 0
+        $this.transaction = $transaction
         $this.hash = $this.calculateHash()
         $this.hash_prev = $hash_prev
         $this.timestamp = $timestamp
-        $this.transaction = $transaction
+        
     }
     [String] calculateHash(){
+        Write-Host "$($this.transaction.ToString())"
         $stream = "$($this.hash_prev) + $($this.timestamp.ToString()) + $($this.transaction.ToString())"
         return Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$stream)) -Algorithm SHA256
     }
@@ -39,7 +45,7 @@ class Block {
 class BlockChain {
     $chain = @()
     [Int32]$difficulty = 2
-    [Array]$pendingTransactions = @()
+    [Transaction[]]$pendingTransactions = @()
     [Int32]$minningReward = 100
     
     BlockChain([Transaction]$transaction){
@@ -64,8 +70,9 @@ class BlockChain {
     }
 
     createTransaction([Transaction]$transaction){
-        if (!$this.pendingTransactions) { $this.pendingTransactions = $transaction }
-        elseif($this.pendingTransactions) { $this.pendingTransactions.add($transaction) }
+        Write-Host "($this.pendingTransactions)"
+        if ($this.pendingTransactions.length -eq 0) { $this.pendingTransactions = $transaction }
+        elseif($this.pendingTransactions.length -gt 0) { $this.pendingTransactions += $transaction }
     }
 
     [Block] getLatestBlock() {
@@ -101,5 +108,5 @@ class BlockChain {
 }
 
 $blockChain = [BlockChain]::new($([Transaction]::new("address1","address2",100)))
-#$blockChain.createTransaction([Transaction]::new("address1","address2",100))
-#$blockChain.createTransaction($([Transaction]::new("address2","address1",50)))
+$blockChain.createTransaction([Transaction]::new("address1","address2",100))
+$blockChain.createTransaction($([Transaction]::new("address2","address1",50)))
