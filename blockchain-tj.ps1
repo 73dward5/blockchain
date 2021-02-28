@@ -45,8 +45,8 @@ class Block {
         return $hashString.Replace('-', '')
     }
     mineBlock([Int32]$difficulty) {
-        while ($($this.hash.Substring(0, $difficulty)).length -ne (([char[]]$difficulty).Length + 1) ){
-            $this.nonce++
+        while ($($this.hash.Substring(0, $difficulty)).length -ne ($difficulty.ToString().Length + 1) ){
+            $this.nonce += 1
             $this.hash = $this.calculateHash()
         } 
     }
@@ -138,3 +138,4 @@ $blockChain.minePendingTransactions("miner")
 Write-Host "Ballance of miner: $($blockChain.getBallanceOfAddress("miner"))"
 Write-Host "Ballance of address2: $($blockChain.getBallanceOfAddress("address2"))"
 Write-Host "Ballance of address1: $($blockChain.getBallanceOfAddress("address1"))"
+Write-Host "Block Chain Validation: $($blockchain.isChainValid())"
