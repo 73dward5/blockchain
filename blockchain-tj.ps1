@@ -49,17 +49,14 @@ class BlockChain {
     [Transaction[]]$pendingTransactions = @()
     [Int32]$minningReward = 100
     
-    BlockChain([Transaction]$transaction){
-        $this.chain = $this.createGenesisBlock($transaction)
+    BlockChain(){
+        $this.chain = $this.createGenesisBlock()
     }
 
-    [Block] createGenesisBlock([Transaction]$tansaction) {
-        return $([Block]::new($(Get-Date), $tansaction, "0"))
+    [Block] createGenesisBlock() {
+        return $([Block]::new($(Get-Date), $([Transaction]::new("","",0)), "0"))
     }
         
-    <#addBlock([Block]$newBlock) { 
-        $this.chain.add($newBlock)
-    }#>
     minePendingTransactions($minningRewardAddress) {
         $block = $null
 
@@ -111,7 +108,7 @@ class BlockChain {
     }
 }
 
-$blockChain = [BlockChain]::new($([Transaction]::new("","",0)))
+$blockChain = [BlockChain]::new()
 $blockChain.createTransaction($([Transaction]::new("address1","address2",100)))
 $blockChain.createTransaction($([Transaction]::new("address2","address1",50)))
 
@@ -119,3 +116,5 @@ $blockChain.minePendingTransactions("address3")
 $blockChain.minePendingTransactions("address3")
 
 Write-Host "Ballance of address3 $($blockChain.getBallanceOfAddress("address3"))"
+Write-Host "Ballance of address2 $($blockChain.getBallanceOfAddress("address2"))"
+Write-Host "Ballance of address1 $($blockChain.getBallanceOfAddress("address1"))"
