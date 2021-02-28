@@ -14,16 +14,18 @@ class Block {
     [Int32]$nonce;
     [String]$hash;
     [String]$hash_prev;
+    [DateTime]$timestamp;
     [Transaction]$transaction;
 
-    Block([Transaction]$transaction, [String]$hash_prev){
+    Block([DateTime]$timestamp, [Transaction]$transaction, [String]$hash_prev){
         $this.nonce = 0
         $this.hash = calculateHash
         $this.hash_prev = $hash_prev
+        $this.timestamp = $timestamp
         $this.transaction = $transaction
     }
     [String] calculateHash(){
-        $stream = $this.hash_prev + $this.transaction.ToString()
+        $stream = $this.hash_prev + $this.timestamp.ToString() + $this.transaction.ToString()
         return Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$stream)) -Algorithm SHA256
     }
     mineBlock([Int32]$difficulty) {
@@ -36,19 +38,42 @@ class Block {
 
 class BlockChain {
     $chain = @()
+    [Int32]$difficulty = 2
+    [Array]$pendingTransactions = @()
+    [Int32]$minningReward = 100
     
     BlockChain(){
         $this.chain = createGenesisBlock
     }
 
     [Block] createGenesisBlock() {
-        return [Block]::new()
+        return [Block]::new($(Get-Date), [Transaction]::new(), "0")
     }
         
-    addBlock([Block]$newBlock) { 
+    <#addBlock([Block]$newBlock) { 
         $this.chain.add($newBlock)
+    }#>
+    minePendingTransactions() {
+        $block = [Block]::new($(Get-Date), $this.pendingTransactions)
+        $block.mineBlock($this.difficulty)
+        if ($?) { Write-Host "Block Successfully Mined!" }
+        $this.chain.add($block)
     }
     [Block] getLatestBlock() {
         return $this.chain[$this.chain.length - 1]
+    }
+    [Bool] isChainValid(){
+        $this.chain | ForEach-Object {
+            $currentBlock = $this.chain[$this.chain.indexOf($_)]
+            $previousBlock = $this.chain[$($this.chain.indexOf($_)) - 1]
+            
+            if ($currentBlock.hash -ne $currentBlock.calculateHash()) {
+                return $False
+            }
+            if ($previousBlock.$hash_prev -ne $currentBlock.hash) {
+                return $False
+            } 
+        }
+        return $True
     }
 }
