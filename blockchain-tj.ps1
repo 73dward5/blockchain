@@ -1,6 +1,7 @@
 class Transaction {
     [String]$fromAddress;
     [String]$toAddress;
+    #Add type: $Type;
     [Int32]$ammount;
 
     Transaction ([String]$fromAddress, [String]$toAddress, [Int32]$ammount) {
@@ -10,7 +11,7 @@ class Transaction {
     }
 
     [String] ToString() {
-        return "$($this.fromAddress) + $($this.toAddress) + $($this.ammount)"
+        return "from = $($this.fromAddress), to = $($this.toAddress), ammount = $($this.ammount)"
     }
 }
 
@@ -30,7 +31,7 @@ class Block {
         
     }
     [String] calculateHash(){
-        Write-Host "$($this.transaction.ToString())"
+        Write-Host "Transaction: $($this.transaction.ToString())"
         $stream = "$($this.hash_prev) + $($this.timestamp.ToString()) + $($this.transaction.ToString())"
         return Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$stream)) -Algorithm SHA256
     }
@@ -67,10 +68,10 @@ class BlockChain {
         }
         $block.mineBlock($this.difficulty)
 
-        if ($?) { Write-Host "Block Successfully Mined!" }
+        if ($?) { Write-Host "Blocks Successfully Mined!" }
         $this.chain += $block
 
-        $this.pendingTransactions += [Transaction]::new($null, $minningRewardAddress, $this.minningReward)
+        $this.pendingTransactions += [Transaction]::new("RewardAddress", $minningRewardAddress, $this.minningReward)
     }
 
     createTransaction([Transaction]$transaction){
@@ -115,8 +116,6 @@ $blockChain.createTransaction($([Transaction]::new("address1","address2",100)))
 $blockChain.createTransaction($([Transaction]::new("address2","address1",50)))
 
 $blockChain.minePendingTransactions("address3")
-
-$blockChain.getBallanceOfAddress("address3")
 $blockChain.minePendingTransactions("address3")
 
-$blockChain.getBallanceOfAddress("address3")
+Write-Host "Ballance of address3 $($blockChain.getBallanceOfAddress("address3"))"
