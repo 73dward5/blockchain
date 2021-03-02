@@ -2,9 +2,9 @@ class Transaction {
     [String]$fromAddress;
     [String]$toAddress;
     #Add type: $Type;
-    [Int]$ammount;
+    [Int32]$ammount;
 
-    Transaction ([String]$fromAddress, [String]$toAddress, [Int]$ammount) {
+    Transaction ([String]$fromAddress, [String]$toAddress, [Int32]$ammount) {
         $this.fromAddress = $fromAddress
         $this.toAddress = $toAddress
         $this.ammount = $ammount
@@ -20,11 +20,11 @@ class Block {
     [String]$hash;
     [String]$hash_prev;
     [DateTime]$timestamp;
-    [Transaction]$transaction;
+    [Transaction[]]$transactions;
 
-    Block([DateTime]$timestamp, [Transaction]$transaction, [String]$hash_prev){
+    Block([DateTime]$timestamp, [Transaction[]]$transactions, [String]$hash_prev){
         $this.nonce = 0
-        $this.transaction = $transaction
+        $this.transactions = $transactions
         $this.hash = $this.calculateHash()
         $this.hash_prev = $hash_prev
         $this.timestamp = $timestamp
@@ -36,7 +36,10 @@ class Block {
     }
     [String] calculateHash(){
         # Input string to hash
-        $string = "$($this.hash_prev)$($this.timestamp.ToString())$($this.transaction.ToString())"
+        # Change transactions to array pull data and put in to a string
+        # $((-join $this.transactions).ToString())
+        $string = "$($this.nonce)$($this.hash_prev)$($this.timestamp.ToString())$((-join $this.transactions).ToString()))"
+        #$string = "$($this.nonce)$($this.hash_prev)$($this.timestamp.ToString())$($this.transaction.ToString())"
 
         #Hash it up
         $hasher = [System.Security.Cryptography.HashAlgorithm]::Create('sha256')
@@ -45,16 +48,16 @@ class Block {
         return $hashString.Replace('-', '')
     }
     mineBlock([Int32]$difficulty) {
-        while ($($this.hash.Substring(0, $difficulty)).length -ne ($difficulty.ToString().Length + 1) ){
-            $this.nonce += 1
-            $this.hash = $this.calculateHash()
+        while ($($this.hash.Substring(0, $difficulty)) -ne $(-join @(0) * $difficulty) ){
+            $this.nonce++
+            $this.hash = $(-join @(0) * $this.nonce) + $this.calculateHash()
         } 
     }
 }
 
 class BlockChain {
     [Block[]]$chain
-    [Int32]$difficulty = 2
+    [Int32]$difficulty = 5
     [Transaction[]]$pendingTransactions
     [Int32]$minningReward = 100
     
@@ -63,24 +66,20 @@ class BlockChain {
     }
 
     [Block] createGenesisBlock() {
-        return $([Block]::new($(Get-Date), $([Transaction]::new("","",0)), "0"))
+        return $([Block]::new($(Get-Date), [Transaction[]]$([Transaction]::new("","",0)), "0"))
     }
         
     minePendingTransactions($minningRewardAddress) {
 
-        foreach ( $transaction in $this.pendingTransactions ){ 
-            
-            Write-Host "Processing transaction: $($transaction.ToString())..."
-            $block = [Block]::new($(Get-Date), $transaction, $($this.chain[$this.chain.lenth -1].hash))
-            Write-Host "Created block: $($block.ToString())"
-            $block.mineBlock($this.difficulty)
-            if ($?) { Write-Host "*** $($this.pendingTransactions.length) Blocks Successfully Mined! ***" }
-            $this.chain += $block
-            
-        }     
+        Write-Host "Processing current transactions..."
+        $block = [Block]::new($(Get-Date), $this.pendingTransactions, $($this.chain[$this.chain.lenth -1].hash))
+        $block.mineBlock($this.difficulty)
+        Write-Host "Block successfully mined: $($block.ToString())"
+        if ($?) { Write-Host "*** $($this.pendingTransactions.length) Blocks Successfully Mined! ***" }
+        $this.chain += $block
+
         #Clear the pending transactions because they are no longer pending
-        $this.pendingTransactions = @()
-        $this.pendingTransactions += [Transaction]::new("rewardAddress", $minningRewardAddress, $this.minningReward)
+        $this.pendingTransactions = [Transaction]::new("rewardAddress", $minningRewardAddress, $this.minningReward)
     }
 
     createTransaction([String]$fromAddress, [String]$toAddress, [Int]$ammount){
@@ -92,14 +91,14 @@ class BlockChain {
     }
 
     [Int32] getBallanceOfAddress($address){
-        $ballance = 0
+        [Int32]$ballance = 0
 
         foreach ($block in $this.chain) {
-            #foreach ($transaction in $block.transaction) { # This is the line with the error for the calculation
+            foreach ($transaction in $block.transactions) { # This is the line with the error for the calculation
                 # We need to make transactions an array or figure out some way to itterate through all the transactions
-                if ($block.transaction.fromAddress -eq $address){ $ballance -= $($block.transaction.ammount) }
-                elseif ($block.transaction.toAddress -eq $address) { $ballance += $($block.transaction.ammount) }
-            #}
+                if ($transaction.fromAddress -eq $address){ $ballance -= $($transaction.ammount) }
+                elseif ($transaction.toAddress -eq $address) { $ballance += $($transaction.ammount) }
+            }
         }
         return $ballance
     }
