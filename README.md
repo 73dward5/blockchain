@@ -1,6 +1,6 @@
 # Powershell Blockchain
 
-This was a very simple excersize to demonstrate the blockchain concepts using powershell. I also played around with converting the code to go as shown in the go-api-test directiory. 
+This was a very simple exercise to demonstrate the blockchain concepts using powershell. I also played around with converting the code to go as shown in the go-api-test directiory. 
 
 Afer running the script the below lines will simulate transactions on the chain.
 
