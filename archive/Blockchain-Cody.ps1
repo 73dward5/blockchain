@@ -22,9 +22,9 @@ class Block {
         $this.hash_prev = Hash_prev
         $this.transaction = $transaction
     }
-    [String] calculateHash(){
-      $  
-    }
+    # [String] calculateHash(){
+    #   return [String]::new("string")
+    # }
 }
 
 class BlockChain {
