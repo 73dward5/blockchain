@@ -2,16 +2,16 @@ class Transaction {
     [String]$fromAddress;
     [String]$toAddress;
     #Add type: $Type;
-    [Int32]$ammount;
+    [Int32]$amount;
 
-    Transaction ([String]$fromAddress, [String]$toAddress, [Int32]$ammount) {
+    Transaction ([String]$fromAddress, [String]$toAddress, [Int32]$amount) {
         $this.fromAddress = $fromAddress
         $this.toAddress = $toAddress
-        $this.ammount = $ammount
+        $this.amount = $amount
     }
     # To give a string output to the class
     [String] ToString() {
-        return "from = $($this.fromAddress), to = $($this.toAddress), ammount = $($this.ammount)"
+        return "from = $($this.fromAddress), to = $($this.toAddress), amount = $($this.amount)"
     }
 }
 
@@ -82,8 +82,8 @@ class BlockChain {
         $this.pendingTransactions = [Transaction]::new("rewardAddress", $minningRewardAddress, $this.minningReward)
     }
 
-    createTransaction([String]$fromAddress, [String]$toAddress, [Int]$ammount){
-        $this.pendingTransactions += $([Transaction]::new($fromAddress, $toAddress, $ammount))
+    createTransaction([String]$fromAddress, [String]$toAddress, [Int]$amount){
+        $this.pendingTransactions += $([Transaction]::new($fromAddress, $toAddress, $amount))
     }
 
     [Block] getLatestBlock() {
@@ -96,8 +96,8 @@ class BlockChain {
         foreach ($block in $this.chain) {
             foreach ($transaction in $block.transactions) { # This is the line with the error for the calculation
                 # We need to make transactions an array or figure out some way to itterate through all the transactions
-                if ($transaction.fromAddress -eq $address){ $ballance -= $($transaction.ammount) }
-                elseif ($transaction.toAddress -eq $address) { $ballance += $($transaction.ammount) }
+                if ($transaction.fromAddress -eq $address){ $ballance -= $($transaction.amount) }
+                elseif ($transaction.toAddress -eq $address) { $ballance += $($transaction.amount) }
             }
         }
         return $ballance

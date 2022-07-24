@@ -1,12 +1,12 @@
 class Transaction { 
     [String]$fromAddress;
     [String]$toAddress;
-    [Int32]$ammount;
+    [Int32]$amount;
 
-    Transaction ([String]$fromAddress, [String]$toAddress, [Int32]$ammount) {
+    Transaction ([String]$fromAddress, [String]$toAddress, [Int32]$amount) {
         $this.fromAddress =$fromAddress
         $this.toAddress = $fromAddress
-        $this.ammount = $ammount
+        $this.amount = $amount
     }
 }
 
